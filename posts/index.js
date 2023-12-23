@@ -2,12 +2,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { randomBytes } = require('crypto');
+const cors = require('cors');
 
 // Create an express application
 const app = express();
 
 // Use bodyParser middleware to parse JSON in the request body
 app.use(bodyParser.json());
+
+// Bypass CORS error
+app.use(cors());
 
 // Data structure (object) to store posts (initially empty)
 const posts = {};
