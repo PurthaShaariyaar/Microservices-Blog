@@ -19,7 +19,7 @@ const PostCreate = () => {
   return (
     <div>
       <form onSubmit={onSubmit}>
-        <div className='form-group'>
+        <div className='form-group py-2'>
           <label>Title</label>
           <input
             className='form-control'
