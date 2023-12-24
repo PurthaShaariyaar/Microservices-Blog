@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { randomBytes } = require('crypto');
 const cors = require('cors');
+const axios = require('axios');
 
 // Create an express application
 const app = express();
@@ -31,8 +32,9 @@ app.get('/posts/:id/comments', (req, res) => {
  * Either retrieve all existing comments or (||) initialize comments to an empty array
  * Push the new comment with id & content to the comments array
  * Update the commentsByPostId object with the new comments array
+ * When a comment is created -> route handler posts it to the event bus (an event)
  */
-app.post('/posts/:id/comments', (req, res) => {
+app.post('/posts/:id/comments', async (req, res) => {
   const commentId = randomBytes(4).toString('hex');
   const { content } = req.body;
 
@@ -42,7 +44,26 @@ app.post('/posts/:id/comments', (req, res) => {
 
   commentsByPostId[req.params.id] = comments;
 
+  await axios.post('http://localhost:4005/events', {
+    type: 'CommentCreated',
+    data: {
+      id: commentId,
+      content,
+      postId: req.params.id
+    }
+  });
+
   res.status(201).send(comments);
+});
+
+/**
+ * Route handler to post it received an event and respond with a status of ok
+ * Respond by 2 parameters: received event & type via request body
+ */
+app.post('/events', (req, res) => {
+  console.log('Received event.', req.body.type);
+
+  res.send({});
 });
 
 // Start the server & listen on port 4001
