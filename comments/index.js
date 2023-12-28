@@ -60,10 +60,37 @@ app.post('/posts/:id/comments', async (req, res) => {
 
 /**
  * Route handler to post it received an event and respond with a status of ok
- * Respond by 2 parameters: received event & type via request body
+ * Respond by 2 parameters: received event (data body) & type via request body
+ * Extract request body > check if type is CommentModerated
+ * Extract the data params from CommentModerated > extract comments by postId
+ * Associate a comment by mapping through all comments and associate the comment.id to id
+ * Assign comment.status to status > async & await post to event bus
  */
-app.post('/events', (req, res) => {
+app.post('/events', async (req, res) => {
   console.log('Received event.', req.body.type);
+
+  const { type, data } = req.body;
+
+  if (type === 'CommentModerated') {
+    const { id, postId, status, content } = data;
+
+    const comments = commentsByPostId[postId];
+
+    const comment = comments.find(comment => {
+      return comment.id === id;
+    });
+    comment.status = status;
+
+    await axios.post('http://localhost:4005/events', {
+      type: 'CommentUpdated',
+      data: {
+        id,
+        postId,
+        status,
+        content
+      }
+    });
+  }
 
   res.send({});
 });
