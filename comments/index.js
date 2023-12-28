@@ -33,6 +33,7 @@ app.get('/posts/:id/comments', (req, res) => {
  * Push the new comment with id & content to the comments array
  * Update the commentsByPostId object with the new comments array
  * When a comment is created -> route handler posts it to the event bus (an event)
+ * Has initial status of pending when sent to query service
  */
 app.post('/posts/:id/comments', async (req, res) => {
   const commentId = randomBytes(4).toString('hex');
@@ -40,7 +41,7 @@ app.post('/posts/:id/comments', async (req, res) => {
 
   const comments = commentsByPostId[req.params.id] || [];
 
-  comments.push({ id: commentId, content });
+  comments.push({ id: commentId, content, status: 'pending' });
 
   commentsByPostId[req.params.id] = comments;
 
@@ -49,7 +50,8 @@ app.post('/posts/:id/comments', async (req, res) => {
     data: {
       id: commentId,
       content,
-      postId: req.params.id
+      postId: req.params.id,
+      status: 'pending'
     }
   });
 
