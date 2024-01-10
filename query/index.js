@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const axios = require('axios');
 
 // Create an express applicaiton
 const app = express();
@@ -16,20 +17,10 @@ app.use(cors());
 const posts = {};
 
 /**
- * Route handler to send all posts
+ * Event handler to check type of event & proceed with next logic
  */
-app.get('/posts', (req, res) => {
-  res.send(posts);
-});
 
-/**
- * Route handler to handle all post events
- * Destructure the data from the request body: type & data
- * Runs 2 type checks (if statement) -> associate the id the posts & insert in destructured data
- */
-app.post('/events', (req, res) => {
-  const { type, data } = req.body;
-
+const handleEvent = (type, data) => {
   if (type === 'PostCreated') {
     const { id, title } = data;
 
@@ -55,13 +46,44 @@ app.post('/events', (req, res) => {
     comment.status = status;
     comment.content = content;
   }
+};
 
-  console.log(posts);
+/**
+ * Route handler to send all posts
+ */
+app.get('/posts', (req, res) => {
+  res.send(posts);
+});
+
+/**
+ * Route handler to handle all post events
+ * Destructure the data from the request body: type & data
+ * Calls handleEvent to pass in the type & data parameters
+ */
+app.post('/events', (req, res) => {
+  const { type, data } = req.body;
+
+  handleEvent(type, data);
 
   res.send({});
 });
 
-// Start the server & listen on port 4002
-app.listen(4002, () => {
+/**
+ * Start listening on port 4002
+ * As soon as the query service is up > requests a get of all events
+ */
+app.listen(4002, async () => {
   console.log('Listening on port 4002...');
+
+  try {
+    const res = await axios.get('http://localhost:4005/events');
+
+    for (let event of res.data) {
+      console.log('Processing event: ', event.type);
+
+      handleEvent(event.type, event.data);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
 });
