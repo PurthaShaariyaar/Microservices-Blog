@@ -28,7 +28,7 @@ app.get('/posts', (req, res) => {
  * Extracts the title -> creates a new post object with the generated id & title
  * When a post is created -> a route handler posts it to the event bus (an event)
  */
-app.post('/posts', async (req, res) => {
+app.post('/posts/create', async (req, res) => {
   const id = randomBytes(4).toString('hex');
   const { title } = req.body;
 
@@ -58,7 +58,7 @@ app.post('/events', (req, res) => {
 
 // Start the server & listen on port 4000
 app.listen(4000, () => {
-  console.log('v55');
+  console.log('v10');
   console.log('Listening on port 4000...');
 });
 
